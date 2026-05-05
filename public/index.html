@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YT Analisa</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060810;
+  --s1: #0e1020;
+  --s2: #161828;
+  --bd: #252840;
+  --ac: #4f8ef7;
+  --ac2: #a78bfa;
+  --ok: #34d399;
+  --err: #f87171;
+  --tx: #e8eaf6;
+  --mu: #5c6080;
+  --sans: 'Syne', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--tx); font-family:var(--sans); min-height:100vh; }
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background: radial-gradient(ellipse 60% 40% at 20% 10%, rgba(79,142,247,.07) 0%, transparent 60%),
+              radial-gradient(ellipse 50% 40% at 80% 80%, rgba(167,139,250,.06) 0%, transparent 60%);
+}
+.wrap { position:relative; z-index:1; max-width:820px; margin:0 auto; padding:36px 18px 80px; }
+
+header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:40px; }
+.logo-tag { font-family:var(--mono); font-size:10px; color:var(--ac); letter-spacing:3px; margin-bottom:4px; }
+.logo-title { font-size:32px; font-weight:800; letter-spacing:-1.5px; background:linear-gradient(135deg,var(--ac),var(--ac2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.logo-sub { font-family:var(--mono); font-size:11px; color:var(--mu); margin-top:5px; }
+.badge { display:flex; align-items:center; gap:8px; background:var(--s1); border:1px solid var(--bd); border-radius:20px; padding:7px 14px; font-family:var(--mono); font-size:11px; color:var(--ok); margin-top:4px; }
+.dot { width:7px; height:7px; border-radius:50%; background:var(--ok); box-shadow:0 0 8px var(--ok); animation:pulse 2s infinite; }
+@keyframes pulse { 50% { opacity:.3; transform:scale(.8); } }
+
+.card { background:var(--s1); border:1px solid var(--bd); border-radius:14px; padding:22px; margin-bottom:14px; }
+.clabel { font-family:var(--mono); font-size:10px; color:var(--mu); letter-spacing:2.5px; text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+.clabel::after { content:''; flex:1; height:1px; background:var(--bd); }
+
+input[type=text] { width:100%; background:var(--s2); border:1px solid var(--bd); border-radius:10px; padding:13px 16px; color:var(--tx); font-family:var(--mono); font-size:13px; outline:none; transition:border-color .2s, box-shadow .2s; margin-bottom:14px; }
+input[type=text]:focus { border-color:var(--ac); box-shadow:0 0 0 3px rgba(79,142,247,.1); }
+input::placeholder { color:var(--mu); }
+
+.lang-row { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+.lang-lbl { font-family:var(--mono); font-size:11px; color:var(--mu); }
+.lang-btn { background:var(--s2); border:1px solid var(--bd); border-radius:8px; padding:6px 14px; color:var(--mu); font-family:var(--mono); font-size:12px; cursor:pointer; transition:all .2s; }
+.lang-btn.on { background:rgba(167,139,250,.12); border-color:var(--ac2); color:var(--ac2); }
+
+.modes { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+.mbtn { background:var(--s2); border:1px solid var(--bd); border-radius:8px; padding:8px 14px; color:var(--mu); font-family:var(--mono); font-size:12px; cursor:pointer; transition:all .2s; }
+.mbtn:hover { color:var(--tx); border-color:#3a3d5c; }
+.mbtn.on { background:rgba(79,142,247,.12); border-color:var(--ac); color:var(--ac); }
+
+.abtn { width:100%; background:linear-gradient(135deg,var(--ac),var(--ac2)); border:none; border-radius:12px; padding:16px; color:#fff; font-family:var(--sans); font-size:15px; font-weight:700; cursor:pointer; transition:all .3s; }
+.abtn:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(79,142,247,.3); }
+.abtn:disabled { opacity:.4; cursor:not-allowed; transform:none; box-shadow:none; }
+
+.errbox { display:none; background:rgba(248,113,113,.1); border:1px solid rgba(248,113,113,.3); border-radius:10px; padding:12px 16px; font-family:var(--mono); font-size:12px; color:var(--err); margin-bottom:12px; }
+.errbox.show { display:block; }
+
+.loading { display:none; text-align:center; padding:50px 20px; background:var(--s1); border:1px solid var(--bd); border-radius:14px; margin-bottom:14px; }
+.loading.show { display:block; }
+.spinner { width:44px; height:44px; border:2px solid var(--bd); border-top-color:var(--ac); border-right-color:var(--ac2); border-radius:50%; animation:spin .9s linear infinite; margin:0 auto 16px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.ltxt { font-family:var(--mono); font-size:13px; color:var(--mu); }
+.lstep { font-size:12px; color:var(--ac); margin-top:6px; min-height:18px; }
+
+.results { display:none; }
+.results.show { display:block; }
+.rhead { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.rlabel { font-family:var(--mono); font-size:10px; color:var(--ok); letter-spacing:3px; text-transform:uppercase; }
+.arow { display:flex; gap:8px; }
+.actbtn { background:var(--s1); border:1px solid var(--bd); border-radius:6px; padding:6px 14px; color:var(--mu); font-family:var(--mono); font-size:11px; cursor:pointer; transition:all .2s; }
+.actbtn:hover { color:var(--tx); border-color:#3a3d5c; }
+
+.vstrip { background:var(--s2); border:1px solid var(--bd); border-radius:10px; padding:12px 16px; margin-bottom:10px; font-family:var(--mono); font-size:11px; color:var(--mu); word-break:break-all; }
+
+.rblock { background:var(--s1); border:1px solid var(--bd); border-radius:12px; margin-bottom:10px; overflow:hidden; }
+.bhead { display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--s2); border-bottom:1px solid var(--bd); cursor:pointer; transition:background .2s; user-select:none; }
+.bhead:hover { background:#1c1f38; }
+.bicon { font-size:14px; }
+.btitle { font-size:13px; font-weight:700; flex:1; }
+.btog { font-size:13px; color:var(--mu); transition:transform .2s; }
+.btog.open { transform:rotate(180deg); }
+.bbody { padding:16px 18px; font-family:var(--mono); font-size:13px; line-height:1.9; color:#9da5c8; white-space:pre-wrap; word-break:break-word; }
+.bbody.collapsed { display:none; }
+
+.hist { margin-top:28px; display:none; }
+.hist.show { display:block; }
+.hlabel { font-family:var(--mono); font-size:10px; color:var(--mu); letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; }
+.hpills { display:flex; flex-wrap:wrap; gap:8px; }
+.hpill { background:var(--s1); border:1px solid var(--bd); border-radius:20px; padding:5px 14px; font-family:var(--mono); font-size:11px; color:var(--mu); cursor:pointer; transition:all .2s; max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.hpill:hover { border-color:var(--ac); color:var(--ac); }
+
+@media(max-width:600px) {
+  header { flex-direction:column; gap:12px; }
+  .logo-title { font-size:26px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <div class="logo-tag">// youtube intelligence</div>
+    <div class="logo-title">YT Analisa</div>
+    <div class="logo-sub">Powered by Gemini 1.5 Flash</div>
+  </div>
+  <div class="badge"><div class="dot"></div>Live</div>
+</header>
+
+<div class="card">
+  <div class="clabel">URL Video YouTube</div>
+  <input type="text" id="urlInput" placeholder="https://www.youtube.com/watch?v=..." />
+
+  <div class="clabel">Bahasa Output</div>
+  <div class="lang-row">
+    <button class="lang-btn on" data-l="id" onclick="setLang(this)">🇮🇩 Indonesia</button>
+    <button class="lang-btn" data-l="en" onclick="setLang(this)">🇬🇧 English</button>
+  </div>
+
+  <div class="clabel">Mode Analisa</div>
+  <div class="modes">
+    <button class="mbtn on" data-m="full"       onclick="setMode(this)">🔍 Analisa Lengkap</button>
+    <button class="mbtn"    data-m="hook"       onclick="setMode(this)">🎣 Hook & Opening</button>
+    <button class="mbtn"    data-m="script"     onclick="setMode(this)">📝 Script Breakdown</button>
+    <button class="mbtn"    data-m="seo"        onclick="setMode(this)">🚀 SEO & Judul</button>
+    <button class="mbtn"    data-m="retention"  onclick="setMode(this)">📈 Retensi</button>
+    <button class="mbtn"    data-m="competitor" onclick="setMode(this)">✨ Ide Konten</button>
+  </div>
+
+  <div class="errbox" id="errBox"></div>
+  <button class="abtn" id="abtn" onclick="analyze()">▶ Analisa Video Sekarang</button>
+</div>
+
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <div class="ltxt">Gemini sedang membaca video...</div>
+  <div class="lstep" id="lstep"></div>
+</div>
+
+<div class="results" id="results">
+  <div class="rhead">
+    <span class="rlabel">// Hasil Analisa</span>
+    <div class="arow">
+      <button class="actbtn" onclick="copyAll()">📋 Salin</button>
+      <button class="actbtn" onclick="clearR()">✕ Hapus</button>
+    </div>
+  </div>
+  <div class="vstrip" id="vstrip"></div>
+  <div id="rgrid"></div>
+</div>
+
+<div class="hist" id="hist">
+  <div class="hlabel">// Riwayat</div>
+  <div class="hpills" id="hpills"></div>
+</div>
+
+</div>
+<script>
+let mode='full', lang='id', full='';
+let history=JSON.parse(localStorage.getItem('yta_h')||'[]');
+renderHist();
+
+function setLang(el){
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on'); lang=el.dataset.l;
+}
+function setMode(el){
+  document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on'); mode=el.dataset.m;
+}
+
+async function analyze(){
+  const url=document.getElementById('urlInput').value.trim();
+  if(!url) return err('Masukkan URL video YouTube.');
+  if(!url.includes('youtube.com')&&!url.includes('youtu.be'))
+    return err('Gunakan URL video YouTube.\nContoh: https://www.youtube.com/watch?v=xxxxx');
+
+  clearErr();
+  document.getElementById('loading').classList.add('show');
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('abtn').disabled=true;
+
+  const steps=['Membuka video YouTube...','Membaca transcript...','Menganalisa dengan Gemini...','Menyusun laporan...'];
+  let si=0;
+  const stepEl=document.getElementById('lstep');
+  stepEl.textContent=steps[0];
+  const iv=setInterval(()=>{ if(si<steps.length-1) stepEl.textContent=steps[++si]; },2500);
+
+  try {
+    const res=await fetch('/api/analyze',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url,mode,lang})
+    });
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Server error');
+    full=data.result;
+    addHist(url);
+    renderResults(data.result,url);
+  } catch(e){
+    err('Error: '+e.message);
+  } finally {
+    clearInterval(iv);
+    document.getElementById('loading').classList.remove('show');
+    document.getElementById('abtn').disabled=false;
+  }
+}
+
+function renderResults(text,url){
+  const mLabel=document.querySelector('.mbtn.on')?.textContent||mode;
+  document.getElementById('vstrip').textContent=
+    '🎬 '+url+' · '+mLabel+' · '+(lang==='id'?'🇮🇩 Indonesia':'🇬🇧 English');
+
+  const grid=document.getElementById('rgrid');
+  grid.innerHTML='';
+  const parts=text.split(/\*\*(\d+\..+?)\*\*/g);
+  if(parts.length>2){
+    for(let i=1;i<parts.length;i+=2){
+      const title=parts[i].replace(/^\d+\.\s*/,'').trim();
+      const content=(parts[i+1]||'').trim();
+      if(content) grid.appendChild(mkBlock(title,content));
+    }
+  } else {
+    grid.appendChild(mkBlock('Hasil Analisa',text));
+  }
+  document.getElementById('results').classList.add('show');
+}
+
+function mkBlock(title,content){
+  const d=document.createElement('div');
+  d.className='rblock';
+  const h=document.createElement('div');
+  h.className='bhead';
+  h.innerHTML=`<span class="bicon">${ico(title)}</span><span class="btitle">${title}</span><span class="btog open">▾</span>`;
+  const b=document.createElement('div');
+  b.className='bbody';
+  b.innerHTML=content
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong style="color:#e8eaf6">$1</strong>')
+    .replace(/\n/g,'<br>');
+  h.onclick=()=>{
+    b.classList.toggle('collapsed');
+    h.querySelector('.btog').classList.toggle('open');
+  };
+  d.append(h,b);
+  return d;
+}
+
+function ico(t){
+  t=t.toLowerCase();
+  if(t.includes('ringkas')) return '📋';
+  if(t.includes('hook')||t.includes('opening')) return '🎣';
+  if(t.includes('struktur')||t.includes('narasi')||t.includes('script')) return '📝';
+  if(t.includes('kekuatan')) return '💪';
+  if(t.includes('kelemahan')||t.includes('peluang')) return '🔧';
+  if(t.includes('seo')||t.includes('judul')||t.includes('keyword')||t.includes('tag')) return '🚀';
+  if(t.includes('retensi')||t.includes('retention')||t.includes('drop')) return '📈';
+  if(t.includes('skor')||t.includes('rekomen')) return '⭐';
+  if(t.includes('ide')||t.includes('konten')||t.includes('calendar')) return '✨';
+  if(t.includes('psikologi')) return '🧠';
+  if(t.includes('thumbnail')) return '🖼';
+  return '▸';
+}
+
+function copyAll(){
+  if(!full) return;
+  navigator.clipboard.writeText(full).then(()=>{
+    const b=document.querySelectorAll('.actbtn')[0];
+    b.textContent='✓ Tersalin!';
+    setTimeout(()=>b.textContent='📋 Salin',2000);
+  });
+}
+
+function clearR(){
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('rgrid').innerHTML='';
+  full='';
+}
+
+function err(m){ const b=document.getElementById('errBox'); b.textContent='⚠ '+m; b.classList.add('show'); }
+function clearErr(){ document.getElementById('errBox').classList.remove('show'); }
+
+function addHist(url){
+  history=[url,...history.filter(u=>u!==url)].slice(0,6);
+  localStorage.setItem('yta_h',JSON.stringify(history));
+  renderHist();
+}
+
+function renderHist(){
+  const w=document.getElementById('hist');
+  const p=document.getElementById('hpills');
+  if(!history.length){ w.classList.remove('show'); return; }
+  w.classList.add('show');
+  p.innerHTML=history.map(u=>{
+    const s=u.replace('https://www.youtube.com/watch?v=','yt/').replace('https://youtu.be/','yt/');
+    return `<div class="hpill" onclick="document.getElementById('urlInput').value='${u}'" title="${u}">${s}</div>`;
+  }).join('');
+}
+
+document.addEventListener('keydown',e=>{ if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)) analyze(); });
+</script>
+</body>
+</html>
